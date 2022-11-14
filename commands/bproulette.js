@@ -49,14 +49,21 @@ module.exports = {
         let interval = setInterval(function() {
             if (Date.now() - i_time > min_sec * 1000) {
                 chance_to_explode++
+                console.log('checking for explosion ' + chance_to_explode)
                 if (Math.random() < chance_to_explode / (1000 * (max_sec - min_sec))) {
-                    i_time = Date.now()
-                    game_channel.send(`💥 The bomb exploded on <@${bomb.id}>! Better luck next time...`)
+                    chance_to_explode = 0
+                    const person = game_channel.guild.members.cache.get(bomb.id);
+                    if (person.roles.cache.some(role => role.name === 'Immunity')) {
+                        person.roles.remove("1041467237250383932")
+                        game_channel.send(`🛡️ <@${bomb.id}>'s shield blocked the blast!`)
+                    } else {
+                        game_channel.send(`💥 The bomb exploded on <@${bomb.id}>! Better luck next time...`)
+                    }
                     game.stop()
                 }
             }
         }, 100);
-        const filter = check => array.includes(check.content.toUpperCase() + "\r") && check.author.id != "1041070495119966358"
+        const filter = check => array.includes(check.content.toUpperCase().replaceAll(/[^A-Z]/gi, '') + "\r") && check.author.id != "1041070495119966358"
         const game = game_channel.createMessageCollector({ filter })
 
         game.on('collect', async(m) => {
@@ -66,9 +73,11 @@ module.exports = {
                     chance_to_explode = 0
                     clearInterval(interval)
                     console.log(bomb_history)
-                    if (bomb_history[bomb_history.length - 1] == bomb_history[bomb_history.length - 2] && bomb_history[bomb_history.length - 2] != bomb_history[bomb_history.length - 3]) {
+                    if (bomb_history[bomb_history.length - 3] == bomb_history[bomb_history.length - 2] && bomb_history[bomb_history.length - 1] == bomb_history[bomb_history.length - 2] && bomb_history[bomb_history.length - 4] != bomb_history[bomb_history.length - 3]) {
                         m.react('⭐')
-                        await game_channel.send('**You just got immunity!** You\'ll be safe the next time a bomb explodes on you. Ping someone else to throw the bomb at! (You don\'t get more immunity for 3+ in a row)')
+                        const person = game_channel.guild.members.cache.get(m.author.id);
+                        person.roles.add("1041467237250383932")
+                        await game_channel.send('**You just got immunity!** You\'ll be safe the next time a bomb explodes on you. Ping someone else to throw the bomb at! (Immunity does not stack.)')
                     } else {
                         m.react('✅')
                         await game_channel.send('Ping someone to throw the bomb at!')
@@ -97,7 +106,13 @@ module.exports = {
                             console.log('checking for explosion ' + chance_to_explode)
                             if (Math.random() < chance_to_explode / (1000 * (max_sec - min_sec))) {
                                 chance_to_explode = 0
-                                game_channel.send(`💥 The bomb exploded on <@${bomb.id}>! Better luck next time...`)
+                                const person = game_channel.guild.members.cache.get(bomb.id);
+                                if (person.roles.cache.some(role => role.name === 'Immunity')) {
+                                    person.roles.remove("1041467237250383932")
+                                    game_channel.send(`🛡️ <@${bomb.id}>'s shield blocked the blast!`)
+                                } else {
+                                    game_channel.send(`💥 The bomb exploded on <@${bomb.id}>! Better luck next time...`)
+                                }
                                 game.stop()
                             }
                         }
