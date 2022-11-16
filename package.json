@@ -14,5 +14,13 @@
   },
   "devDependencies": {
     "eslint": "^8.27.0"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MysteriousGrimReaper/rho-event-bot.git"
+  },
+  "bugs": {
+    "url": "https://github.com/MysteriousGrimReaper/rho-event-bot/issues"
+  },
+  "homepage": "https://github.com/MysteriousGrimReaper/rho-event-bot#readme"
 }
