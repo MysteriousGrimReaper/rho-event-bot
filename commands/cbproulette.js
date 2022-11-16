@@ -5,13 +5,13 @@ const array = fs.readFileSync('dict.txt').toString().split("\n");
 
 module.exports = {
     data: new SlashCommandBuilder()
-        .setName("bpr")
+        .setName("cbpr")
         .setDescription("Begin 1 round of Bomb Party Roulette! For event hosts only.")
         .addUserOption(option => option.setName('fuse')
             .setDescription('Who should start with the bomb?')
             .setRequired(true)),
     async execute(interaction) {
-        const game_channel = interaction.client.channels.cache.get("814967728226041906")
+        const game_channel = interaction.channel
         let bomb = interaction.options.getUser('fuse')
         let chance_to_explode = 0
         const max_sec = 25
@@ -66,26 +66,14 @@ module.exports = {
             // filter
         const game = game_channel.createMessageCollector({ filter })
 
-        function check_letter(message, letter) {
-            return message.replace(letter, '').length < message.length
-        }
         game.on('collect', async(m) => {
             if (m.author.id === bomb.id) {
                 if (m.content.toUpperCase().includes(sub)) {
                     bomb_history.push(bomb.id)
                     chance_to_explode = 0
                     clearInterval(interval)
-                        // bomb_history[bomb_history.length - 4] == bomb_history[bomb_history.length - 5] && bomb_history[bomb_history.length - 3] == bomb_history[bomb_history.length - 4] && bomb_history[bomb_history.length - 3] == bomb_history[bomb_history.length - 2] && bomb_history[bomb_history.length - 1] == bomb_history[bomb_history.length - 2]
-                    const msg = m.content.toUpperCase().replaceAll(/[^A-Z]/gi, '')
-                    if (check_letter(msg, 'A') && check_letter(msg, 'E') && check_letter(msg, 'I') && check_letter(msg, 'O') && check_letter(msg, 'U')) {
-                        m.react('⭐')
-                        const person = game_channel.guild.members.cache.get(m.author.id);
-                        person.roles.add("1041467237250383932")
-                        await game_channel.send('**You just got immunity!** You\'ll be safe the next time a bomb explodes on you. Ping someone else to throw the bomb at! (Immunity does not stack.)')
-                    } else {
-                        m.react('✅')
-                        await game_channel.send('Ping someone to throw the bomb at!')
-                    }
+                    m.react('✅')
+                    await game_channel.send('Ping someone to throw the bomb at!')
 
                 } else {
                     m.react('❌')
@@ -96,39 +84,35 @@ module.exports = {
             if (m.content == "fs" && m.author.id == interaction.user.id) {
                 game.stop()
             } else if (m.mentions.members.first() && m.author.id == bomb.id) {
-                if (m.mentions.members.first().roles.cache.some(role => role.name === 'Event Contenders')) {
-                    bomb = m.mentions.members.first()
-                    sub = '.'
-                    while (!valid_substring(sub)) {
-                        sub = makeid(3)
-                    }
-                    let count = 0;
-                    bomb_history.forEach(element => {
-                        if (element === bomb.id) {
-                            count += 1
-                        }
-                    })
-                    game_channel.send(`<@${bomb.id}>\n**${sub}**`)
-                    i_time = Date.now()
-                    interval = setInterval(function() {
-                        if (Date.now() - i_time > min_sec * 1000) {
-                            chance_to_explode++
-                            if (Math.random() < chance_to_explode / (1000 * (max_sec - min_sec))) {
-                                chance_to_explode = 0
-                                const person = game_channel.guild.members.cache.get(bomb.id);
-                                if (person.roles.cache.some(role => role.name === 'Immunity')) {
-                                    person.roles.remove("1041467237250383932")
-                                    game_channel.send(`🛡️ <@${bomb.id}>'s shield blocked the blast!`)
-                                } else {
-                                    game_channel.send(`💥 The bomb exploded on <@${bomb.id}>! Better luck next time...`)
-                                }
-                                game.stop()
-                            }
-                        }
-                    }, 100 / Math.max(1, count));
-                } else {
-                    game_channel.send('That user is not playing!')
+                bomb = m.mentions.members.first()
+                sub = '.'
+                while (!valid_substring(sub)) {
+                    sub = makeid(3)
                 }
+                let count = 0;
+                bomb_history.forEach(element => {
+                    if (element === bomb.id) {
+                        count += 1
+                    }
+                })
+                game_channel.send(`<@${bomb.id}>\n**${sub}**`)
+                i_time = Date.now()
+                interval = setInterval(function() {
+                    if (Date.now() - i_time > min_sec * 1000) {
+                        chance_to_explode++
+                        if (Math.random() < chance_to_explode / (1000 * (max_sec - min_sec))) {
+                            chance_to_explode = 0
+                            const person = game_channel.guild.members.cache.get(bomb.id);
+                            if (person.roles.cache.some(role => role.name === 'Immunity')) {
+                                person.roles.remove("1041467237250383932")
+                                game_channel.send(`🛡️ <@${bomb.id}>'s shield blocked the blast!`)
+                            } else {
+                                game_channel.send(`💥 The bomb exploded on <@${bomb.id}>! Better luck next time...`)
+                            }
+                            game.stop()
+                        }
+                    }
+                }, 100 / Math.max(1, count));
             } else if (m.author.id == bomb.id) {
                 m.react('❌')
             }

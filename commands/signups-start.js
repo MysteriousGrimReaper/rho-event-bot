@@ -14,7 +14,10 @@ module.exports = {
         const col = signups.createMessageCollector({ time: minutes * 60000 })
         col.on('collect', async(m) => {
             const person = signups.guild.members.cache.get(m.author.id);
-            person.roles.add("600137520306716707")
+            if (person != undefined) {
+                person.roles.add("600137520306716707")
+            }
+
         })
         col.on('end', async() => {
             await signups.permissionOverwrites.create(signups.guild.roles.everyone, { SendMessages: false });
