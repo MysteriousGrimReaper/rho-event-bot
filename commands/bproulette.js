@@ -66,9 +66,9 @@ module.exports = {
             // filter
         const game = game_channel.createMessageCollector({ filter })
 
-        function check_letter(message, letter) {
+        /* function check_letter(message, letter) {
             return message.replace(letter, '').length < message.length
-        }
+        }*/
         game.on('collect', async(m) => {
             if (m.author.id === bomb.id) {
                 if (m.content.toUpperCase().includes(sub)) {
@@ -77,7 +77,28 @@ module.exports = {
                     clearInterval(interval)
                         // bomb_history[bomb_history.length - 4] == bomb_history[bomb_history.length - 5] && bomb_history[bomb_history.length - 3] == bomb_history[bomb_history.length - 4] && bomb_history[bomb_history.length - 3] == bomb_history[bomb_history.length - 2] && bomb_history[bomb_history.length - 1] == bomb_history[bomb_history.length - 2]
                     const msg = m.content.toUpperCase().replaceAll(/[^A-Z]/gi, '')
-                    if (check_letter(msg, 'A') && check_letter(msg, 'E') && check_letter(msg, 'I') && check_letter(msg, 'O') && check_letter(msg, 'U')) {
+                    let score = 0;
+                    const points = [
+                        ['A', 'E', 'I', 'L', 'N', 'O', 'R', 'S', 'T', 'U'],
+                        ['D', 'G'],
+                        ['B', 'C', 'M', 'P'],
+                        ['H', 'F', 'V', 'W', 'Y'],
+                        ['K'],
+                        ['thrthrhtyrth'],
+                        ['thrthrhtyrth'],
+                        ['J', 'X'],
+                        ['thrthrhtyrth'],
+                        ['Q', 'Z'],
+                    ]
+                    for (let h = 0; h < msg.length; h++) {
+                        for (let g = 0; g < points.length; g++) {
+                            if (points[g].includes(msg.charAt(h))) {
+                                score += (g + 1)
+                            }
+                        }
+
+                    }
+                    if (score > 18) {
                         m.react('⭐')
                         const person = game_channel.guild.members.cache.get(m.author.id);
                         person.roles.add("1041467237250383932")
@@ -96,7 +117,7 @@ module.exports = {
             if (m.content == "fs" && m.author.id == interaction.user.id) {
                 game.stop()
             } else if (m.mentions.members.first() && m.author.id == bomb.id) {
-                if (m.mentions.members.first().roles.cache.some(role => role.name === 'Event Contenders')) {
+                if (m.mentions.members.first().roles.cache.some(role => role.name === 'Event Contenders') && m.mentions.members.first().id != bomb.id) {
                     bomb = m.mentions.members.first()
                     sub = '.'
                     while (!valid_substring(sub)) {
@@ -126,6 +147,8 @@ module.exports = {
                             }
                         }
                     }, 100 / Math.max(1, count));
+                } else if (m.mentions.members.first().id == bomb.id) {
+                    game_channel.send(`You can't throw the bomb at yourself, it'll explode!`)
                 } else {
                     game_channel.send('That user is not playing!')
                 }
