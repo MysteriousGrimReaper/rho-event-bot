@@ -64,7 +64,7 @@ module.exports = {
         }, 100);
         const filter = check => array.includes(check.content.toUpperCase().replaceAll(/[^A-Z]/gi, '') + "\r") && check.author.id != "1041070495119966358"
             // filter
-        const game = game_channel.createMessageCollector({ filter })
+        const game = game_channel.createMessageCollector({ filter, time: 600000 })
 
         /* function check_letter(message, letter) {
             return message.replace(letter, '').length < message.length
