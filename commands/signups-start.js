@@ -1,11 +1,12 @@
-const { SlashCommandBuilder } = require('discord.js');
+const { SlashCommandBuilder, PermissionFlagsBits } = require('discord.js');
 module.exports = {
     data: new SlashCommandBuilder()
         .setName("signups-start")
         .setDescription("Begin signups! For event hosts only.")
         .addIntegerOption(option => option.setName('minutes')
             .setDescription("How many minutes should signups be open for?")
-            .setRequired(true)),
+            .setRequired(true))
+            .setDefaultMemberPermissions(PermissionFlagsBits.ManageChannels),
     async execute(interaction) {
         const signups = interaction.client.channels.cache.get("718189137701765190")
         const minutes = interaction.options.getInteger("minutes")

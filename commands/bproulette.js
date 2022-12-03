@@ -1,4 +1,4 @@
-const { SlashCommandBuilder } = require('discord.js');
+const { SlashCommandBuilder, PermissionFlagsBits } = require('discord.js');
 const fs = require('fs');
 const { clearInterval } = require('timers');
 const array = fs.readFileSync('dict.txt').toString().split("\n");
@@ -9,7 +9,8 @@ module.exports = {
         .setDescription("Begin 1 round of Bomb Party Roulette! For event hosts only.")
         .addUserOption(option => option.setName('fuse')
             .setDescription('Who should start with the bomb?')
-            .setRequired(true)),
+            .setRequired(true))
+        .setDefaultMemberPermissions(PermissionFlagsBits.ManageChannels),
     async execute(interaction) {
         const game_channel = interaction.client.channels.cache.get("814967728226041906")
         let bomb = interaction.options.getUser('fuse')
