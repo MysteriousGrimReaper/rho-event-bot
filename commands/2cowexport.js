@@ -31,23 +31,27 @@ module.exports = {
         await interaction.reply({ ephemeral: true, content: `Responses exported!` })
         await db.all().then(
             async (m) => {
-                let message_to_send = '```\n'
+                let message_to_send = ''
+                let message_to_send_2 = '\n'
                 const responses = []
                 for (const i in m) {
-                    message_to_send += m[i].id + `[[[[]]]]` + m[i].value + `\n`
+                    message_to_send += m[i].id + `\n`
+                    message_to_send_2 +=  m[i].value + `\n`
                     responses.push(m[i].value)
                 }
-                message_to_send += '```'
                 
                 shuffle(responses)
                 let message2 = '```\nCOW\n'
+                let message2_2 = '\n'
                 for (const i in responses) {
                     const letter = String.fromCharCode(parseInt(i) + 65)
-                    message2 += letter + `[[[[]]]]` + responses[i] + `\n`
+                    message2 += letter  + `\n`
+                    message2_2 += responses[i] + `\n`
                 }
-                message2 += '```'
-                await test_channel.send(message_to_send)
-                .then(async () => await test_channel.send(message2))
+                message2 += '\n'
+                message2_2 += ''
+                await test_channel.send(message_to_send + message_to_send_2)
+                .then(async () => await test_channel.send(message2 + message2_2))
 
             },
         )
