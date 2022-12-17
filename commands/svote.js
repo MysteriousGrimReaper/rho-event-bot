@@ -13,6 +13,7 @@ module.exports = {
         if (interaction.guild.members.cache.get(interaction.user.id).roles.cache.has("600137520306716707") && interaction.guild.members.cache.get(interaction.options.getUser('vote').id).roles.cache.has("600137520306716707")) {
             await db.set(interaction.user.tag, interaction.options.getUser('vote'))
             await interaction.reply({ ephemeral: true, content: `You have voted for **${interaction.options.getUser('vote').tag}**.` })
+            console.log(`${interaction.user.tag} has voted for ${interaction.options.getUser('vote').tag}`)
         }
         else {
             await interaction.reply({ ephemeral: true, content: `You can't vote **${interaction.options.getUser('vote').tag}**!` })

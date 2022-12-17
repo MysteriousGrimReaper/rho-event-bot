@@ -24,6 +24,7 @@ module.exports = {
             '476241113892519949',
             `292451628781666304`,
             `526433701719179284`,
+            `287035668151009280`,
         ]
         const c_death_messages = [
             'died #ripbozo we smokin that yoshikid pack',
@@ -32,6 +33,7 @@ module.exports = {
             `@NeuroL04#9200`,
             `TAHAHHAHAHHAHAHAHHAHAHAHHAHAHAHAHHAHAHAHAHHAHAHAHHAHAHAHHAHAHHAHAHAHHAHAHAHAHHAHAHHAHAHHAHAHAHHAHAHAHAAHAHHAHAHAHHAHAHHAHAHAHHAHAHHAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHAAAAAAAAAAAAAAAAAAAAAAAHHHHHHhhHHHAAAAaaAAAaAaAaAaAaAaAAAaaAAaAaaA`,
             `Spanish boi goes BRRRRRRRRRRRR`,
+            `is hellbound~`,
         ]
         const elim_channel = interaction.channel
         await interaction.reply(`Starting game of Supersonic Circle!`)
@@ -64,7 +66,7 @@ module.exports = {
                     async() => await interaction.channel.send(`There was a tie! Make sure to revote.`),
                 )
             })
-        }, 10000);
+        }, 60000);
         
 
     },
