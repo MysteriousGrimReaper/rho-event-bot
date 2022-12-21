@@ -6,7 +6,7 @@ module.exports = {
         .setName('onw')
         .setDescription('Starts a game of one night werewolf.'),
     async execute(interaction) {
-        const game_channel = interaction.client.channels.cache.get("549052374736437279")
+        const game_channel = interaction.client.channels.cache.get("814967728226041906")
         function getOccurrence(array, value) {
             let count = 0;
             array.forEach((v) => (v === value && count++));
@@ -87,7 +87,7 @@ module.exports = {
                 init_embed = updateEmbed({ start: true })
                 await init_message.edit({ embeds: [init_embed] })
                 const roles = ['Villager', 'Werewolf', 'Werewolf', 'Seer', 'Robber', 'Troublemaker']
-                const ext_roles = ['Villager', 'Villager', 'Werewolf', 'Tanner', 'Drunk', 'Hunter', 'Insomniac', 'Minion']
+                const ext_roles = ['Villager', 'Villager', 'Tanner', 'Drunk', 'Hunter', 'Insomniac', 'Minion']
                 shuffle(ext_roles)
                 while (roles.length < (players.length + 3)) {
                     if (ext_roles.length > 0) {
@@ -105,7 +105,6 @@ module.exports = {
                 for (const i in players) {
                     await interaction.client.users.send(players[i].id, `Your role is **${roles[i]}**.`)
                 }
-                const tau = interaction.client.users.fetch(`1031347324796030986`)
                 let r_role = Math.floor(Math.random() * 3)
                 const r_role3 = Math.floor(Math.random() * 3)
                 const r_time = 5000 * Math.random() + 8000
@@ -150,13 +149,15 @@ module.exports = {
                             if (players[roles.indexOf('Seer')] != undefined) {
                                 players[roles.indexOf('Seer')].send(`You may look at another player's cards or two of the center cards. (type 'center' to see the center cards) (Copy and paste someone from the player list to see their role) \nPlayer list: \n${tags.join(`\n`)}`)
                                 const seer_filter = m => (tags.includes(m.content) || m.content == 'center') && m.author.tag != m.content
-                                const seer_col = (players[roles.indexOf('Seer')] ?? tau).dmChannel.createMessageCollector({ filter: seer_filter, max: 1, time: 18000 })
-                                seer_col.on('collect', (m) => {
-                                    console.log(m.content)
-                                    players[roles.indexOf('Seer')].send(m.content == 'center' ? `2 of the center roles are: **${middle_roles[r_role]}, ${middle_roles[(r_role + 1) % 3]}**` : `${m.content}'s role is **${roles[tags.indexOf(m.content)]}**`)
+                                players[roles.indexOf('Seer')].dmChannel.awaitMessages({ filter: seer_filter, max: 1, time: 30000, errors: ['time'] })
+                               .then(m => {
+                                    players[roles.indexOf('Seer')].send(m.first().content == 'center' ? `2 of the center roles are: **${middle_roles[r_role]}, ${middle_roles[(r_role + 1) % 3]}**` : `${m.first().content}'s role is **${roles[tags.indexOf(m.first().content)]}**`)
+                                    resolve(true)
                                 })
-                                seer_col.on('ignore', (m) => console.log(m.content))
-                                seer_col.on('end', async () => resolve(true))
+                                .catch(() => {
+                                    players[roles.indexOf('Seer')].send(`2 of the center roles are: **${middle_roles[r_role]}, ${middle_roles[(r_role + 1) % 3]}**`)
+                                    resolve(true)
+                                });
                             }
                             else {
                                 setTimeout(() => {
@@ -173,10 +174,8 @@ module.exports = {
                     const robber_filter = m => tags.includes(m.content)
                     const robber_col = (players[roles.indexOf('Robber')]).dmChannel.createMessageCollector({ filter: robber_filter, max: 1, time: 63000 })
                     robber_col.on('collect', async (m) => {
-                        [new_roles[tags.indexOf(m.content)], new_roles[roles.indexOf('Robber')]] = [new_roles[roles.indexOf('Robber')], new_roles[tags.indexOf(m.content)]] 
-                        console.log(roles)
-                        console.log(new_roles)
                         player.send(`Your new role is **${roles[tags.indexOf(m.content)]}**`)
+                        [new_roles[tags.indexOf(m.content)], new_roles[roles.indexOf('Robber')]] = [new_roles[roles.indexOf('Robber')], new_roles[tags.indexOf(m.content)]] 
                     })
                     robber_col.on('ignore', async (m) => console.log(m.content))
                     robber_col.on('end', async () => resolve(true))
@@ -233,7 +232,7 @@ module.exports = {
                     console.log(`end`)
                     const ids = players.map(x => `<@` + x.id + `>`)
                     interaction.channel.send(`${ids.join('')}\nTime to wake up! You have **5 minutes** to discuss.`)
-                    const ff_filter = m => m.content == 'ff'
+                    const ff_filter = m => m.content == 'ff' && m.author.id == `315495597874610178`
                     const ff = game_channel.createMessageCollector({ filter: ff_filter, time: 300000 })
                     ff.on('collect', () => ff.stop())
                     ff.on('end', () => resolve(true)) // reset this back to 300000
@@ -244,21 +243,67 @@ module.exports = {
                     const vote_list = []
                     const voters = []
                     const ids = players.map(x => `<@` + x.id + `>`)
-                        interaction.channel.send(`${ids.join('')}\nTime to vote! Ping the person you would like to vote. (Type center to vote the center)`)
-                        const vote_filter = (m) => (m.mentions.members.first() || m.content == 'center') && !voters.includes(m.author)
+                        interaction.channel.send(`${ids.join('')}\nTime to vote! You have 30 seconds to ping the person you would like to vote. (Type center to vote the center)`)
+                        const vote_filter = (m) => (m.mentions.members.first() || m.content == 'center') && !voters.includes(m.author) && players.includes(m.author)
                         const votes = game_channel.createMessageCollector({ filter: vote_filter, time: 30000 })
                         votes.on('collect', async (m) => { 
                             if (m.mentions.users.first() || m.content == 'center') {
                                 if (m.content == 'center') {
                                     vote_list.push('center')
+                                    m.reply(`Vote for **center** confirmed.`)
                                 }
                                 else if (tags.includes(m.mentions.users.first().tag)) {
                                     vote_list.push(m.mentions.users.first().tag) 
+                                    m.reply(`Vote for **${m.mentions.users.first().tag}** confirmed.`)
                                 }
                                 voters.push(m.author)
                             }
                         })
-                        votes.on('end', async () => { resolve(await interaction.channel.send(`${mode(vote_list) == 'center' ? `The center received the most votes. They were ${new_roles.slice(players.length, players.length + 3).includes(`Werewolf`) ? `the Werewolf. The town wins!` : `not the Werewolf. The werewolves win!`} ` : `${players[tags.indexOf(mode(vote_list))]}`} received the most votes. They were the **${new_roles[tags.indexOf(mode(vote_list))]}**. ${new_roles[tags.indexOf(mode(vote_list))] == `Werewolf` ? (new_roles[tags.indexOf(mode(vote_list))] == `Tanner` ? `The tanner wins!` : `The town wins!`) : `The werewolves win!`}`)) })
+                        votes.on('end', async () => { 
+                            if (vote_list.length == 0) {
+                                await interaction.channel.send(`Due to the lack of votes, the Werewolves win!`)
+                            }
+                            else if (mode(vote_list) == `center`) {
+                                await interaction.channel.send(`The center got the most votes. They were...`)
+                                .then(() => setTimeout(() => {
+                                    resolve(true)
+                                }, 4000))
+                                .then(() => resolve(interaction.channel.send(`**${new_roles.slice(players.length, players.length + 3).includes(`Werewolf`) ? `the werewolf. The town wins!` : `not the Werewolf. The werewolves win!`}**`)))
+                            }
+                            else {
+                                await interaction.channel.send(`${players[tags.indexOf(mode(vote_list))]} got the most votes. They were the...`)
+                                .then(() => setTimeout(() => {
+                                    resolve(true)
+                                }, 4000))
+                                .then(async () => {
+                                    if (new_roles[tags.indexOf(mode(vote_list))] == `Hunter`) {
+                                        await interaction.channel.send(`**Hunter**. They voted for ${players[tags.indexOf(vote_list[voters.indexOf(players[tags.indexOf(mode(vote_list))])])]}, who was the...`)
+                                        .then(() => setTimeout(() => {
+                                            resolve(true)
+                                        }, 4000))
+                                        .then(() => {
+                                            interaction.channel.send(`**${new_roles[tags.indexOf(vote_list[voters.indexOf(players[tags.indexOf(mode(vote_list))])])]}**. ${new_roles[tags.indexOf(vote_list[voters.indexOf(players[tags.indexOf(mode(vote_list))])])] == `Werewolf` ? `The town wins!` : `The werewolves win!`}`)
+                                        })
+                                    }
+                                    else if (new_roles[tags.indexOf(mode(vote_list))] == `Tanner`) {
+                                        interaction.channel.send(`**Tanner**. ${players[tags.indexOf(mode(vote_list))]} wins!`)
+                                    }
+                                    else {
+                                        interaction.channel.send(`**${new_roles[tags.indexOf(mode(vote_list))]}**. ${new_roles[tags.indexOf(mode(vote_list))] == `Werewolf` ? `The town wins!` : `The werewolves win!`}`)
+                                    }
+                                    const role_list = []
+                                    for (const i in new_roles) {
+                                        if (players[i] == undefined) {
+                                            role_list.push(`Center: ${new_roles[i]}`)
+                                        }
+                                        else {
+                                            role_list.push(`${tags[i]}: ${new_roles[i]}`)
+                                        }
+                                    }
+                                    console.log(role_list.join(`\n`))
+                                })
+                            }
+                        })
                 }))
             }
             else {
