@@ -13,7 +13,6 @@ module.exports = {
             console.error(`No command matching ${interaction.commandName} was found.`);
             return;
         }
-
         try {
             await command.execute(interaction);
         } catch (error) {

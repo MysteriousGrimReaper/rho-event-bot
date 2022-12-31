@@ -1,6 +1,7 @@
 /* eslint-disable no-unexpected-multiline */
 /* eslint-disable no-case-declarations */
 const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
+const signups = require(`../signup.js`)
 module.exports = {
     data: new SlashCommandBuilder()
         .setName('onw')
@@ -59,7 +60,7 @@ module.exports = {
         const tags = [interaction.user.tag]
         function updateEmbed ({ start = false } = {}) {
             return new EmbedBuilder()
-            .setTitle(start ? `Game started!` : `One Night Werewolf game starting! React to this message to join. (Make sure you have DM permissions enabled)`)
+            .setTitle(start ? `Game started!` : `One Night Werewolf game starting! React to this message to join. ${interaction.user.username}, react to the message when you are ready to begin! \n(Make sure you have DM permissions enabled)`)
             .setDescription(tags.join(`\n`))
         }
         let init_embed = updateEmbed()
@@ -67,11 +68,11 @@ module.exports = {
         const init_message = await interaction.channel.send({ embeds: [init_embed] })
         init_message.react(`☑️`)
         const filter = (reaction, user) => {
-            return user.id != interaction.user.id && user.id != interaction.client.user.id;
+            return user.id != interaction.client.user.id;
         };
-        const signup = init_message.createReactionCollector({ filter, time: 60000, max: 14 })
+        const signup = init_message.createReactionCollector({ filter })
         signup.on('collect', async (reaction, user) => {
-            if (reaction.emoji == '✅' && user.id == `315495597874610178`) {
+            if (user.id == interaction.user.id) {
                 signup.stop()
             }
             else if (!tags.includes(user.tag)) {

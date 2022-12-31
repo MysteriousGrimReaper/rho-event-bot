@@ -83,7 +83,7 @@ module.exports = {
         game.on('ignore', async(m) => {
             if (m.content == "fs" && m.author.id == interaction.user.id) {
                 game.stop()
-            } else if (m.mentions.members.first() && m.author.id == bomb.id) {
+            } else if (m.mentions.members.first() && m.author.id == bomb.id && m.mentions.members.first().id != `1041070495119966358`) {
                 bomb = m.mentions.members.first()
                 sub = '.'
                 while (!valid_substring(sub)) {
