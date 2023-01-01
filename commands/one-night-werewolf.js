@@ -1,7 +1,6 @@
 /* eslint-disable no-unexpected-multiline */
 /* eslint-disable no-case-declarations */
 const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
-const signups = require(`../signup.js`)
 module.exports = {
     data: new SlashCommandBuilder()
         .setName('onw')

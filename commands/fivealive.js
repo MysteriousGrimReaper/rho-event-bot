@@ -9,7 +9,7 @@ module.exports = {
         .setName('5alive')
         .setDescription('Starts a game of Five Alive.'),
     async execute(interaction) {
-        const priv_channel = interaction.client.channels.cache.get("1041097062407745546")
+        
         const cards = [`0`, `1`, `2`, `3`, `4`, `5`, `6`, `7`, `draw`, `back`, `reverse`, `skip`, `=21`, `=10`, `=0`, `shuffle`, `x2`]
         const game_channel = interaction.channel
         function getOccurrence(array, value) {
@@ -299,29 +299,13 @@ module.exports = {
                     }
                     current_turn = current_turn % bank.length
                     if (win_con != `win`) {
-                        priv_channel.send(`nt`)
+                        turn_play()
                     }
                     console.log(current_turn)
-                    resolve(true)
+                    
                 }))
                 }
-                const turn_col_filter = (m) => m.content == `nt` || m.content == `stop`
-                const next_turn_col = priv_channel.createMessageCollector({ filter: turn_col_filter })
-                next_turn_col.on(`collect`, (m) => {
-                    switch (m.content) {
-                        case `nt`:
-                            if (bank.length > 1) {
-                                turn_play()
-                            }
-                            else {
-                                next_turn_col.stop()
-                            }
-                            break
-                        case `stop`:
-                            next_turn_col.stop()
-                    }
-                })
-                priv_channel.send(`nt`)
+                turn_play()
                 
             }
             else {
