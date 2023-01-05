@@ -11,36 +11,6 @@ module.exports = {
     async execute(interaction) {
         
         const cards = [`0`, `1`, `2`, `3`, `4`, `5`, `6`, `7`, `draw`, `back`, `reverse`, `skip`, `=21`, `=10`, `=0`, `shuffle`, `x2`]
-        const game_channel = interaction.channel
-        function getOccurrence(array, value) {
-            let count = 0;
-            array.forEach((v) => (v === value && count++));
-            return count;
-        }
-        const mode = a => {
-            a = a.slice().sort((x, y) => x - y);
-          
-            let bestStreak = 1;
-            let bestElem = a[0];
-            let currentStreak = 1;
-            let currentElem = a[0];
-          
-            for (let i = 1; i < a.length; i++) {
-              if (a[i - 1] !== a[i]) {
-                if (currentStreak > bestStreak) {
-                  bestStreak = currentStreak;
-                  bestElem = currentElem;
-                }
-          
-                currentStreak = 0;
-                currentElem = a[i];
-              }
-          
-              currentStreak++;
-            }
-          
-            return currentStreak > bestStreak ? currentElem : bestElem;
-          };
         function shuffle(array) {
             let currentIndex = array.length,
                 randomIndex;
