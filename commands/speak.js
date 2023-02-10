@@ -17,9 +17,15 @@ module.exports = {
         interaction.reply({ ephemeral: true, content: 'hi' })
         if (interaction.options.getChannel('channel')) {
             interaction.options.getChannel('channel').send(`${interaction.options.getString('message')}`)
+            console.log(`${interaction.options.getString('message')}`)
         }
-        if (interaction.options.getUser('user')) {
+        else if (interaction.options.getUser('user')) {
             interaction.options.getUser('user').send(`${interaction.options.getString('message')}`)
         }
+        else {
+            interaction.client.channels.cache.get("1054960598145839104").send(`${interaction.options.getString('message')}`)
+        }
+        
+        
     },
 }
