@@ -5,7 +5,7 @@ const array = fs.readFileSync('dict.txt').toString().split("\n");
 
 module.exports = {
     data: new SlashCommandBuilder()
-        .setName("cbpr")
+        .setName("bpr")
         .setDescription("Begin 1 round of Bomb Party Roulette! For event hosts only.")
         .addUserOption(option => option.setName('fuse')
             .setDescription('Who should start with the bomb?')

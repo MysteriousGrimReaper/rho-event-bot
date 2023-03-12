@@ -6,7 +6,7 @@ module.exports = {
         .setName('onw')
         .setDescription('Starts a game of one night werewolf.'),
     async execute(interaction) {
-        const game_channel = interaction.client.channels.cache.get("814967728226041906")
+        const game_channel = interaction.channel
         function getOccurrence(array, value) {
             let count = 0;
             array.forEach((v) => (v === value && count++));
