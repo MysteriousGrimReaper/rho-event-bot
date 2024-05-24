@@ -3,7 +3,7 @@
 const { SlashCommandBuilder, EmbedBuilder } = require("discord.js");
 const path = require("path");
 const fs = require(`fs`);
-const { dir } = require("../dir.json");
+const { dir } = require("../commands/dir.json");
 const wait = require("node:timers/promises").setTimeout;
 const dPath_game = path.join(dir, "game-lists/");
 const full_prompt_list = fs

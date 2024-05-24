@@ -17,7 +17,6 @@ const path = require("path");
 const { dir } = require("../dir.json");
 const signup_path = path.join(dir, `/tools/signup.js`);
 const { create_signup } = require(signup_path);
-console.log(word_array);
 const rules_embed = [
 	new EmbedBuilder()
 		.setTitle(`Bomb Party Rules`)
@@ -50,6 +49,26 @@ function createArrayOfNumber(n, num) {
 }
 function createArrayOfAlphabet(n) {
 	return Array.from({ length: n }, () => alphabet);
+}
+class Player {
+	constructor({ player, lives }) {
+		this.player = player;
+		this.lives = lives;
+		this.letters = alphabet;
+		this.words = [];
+	}
+	check_letters(message) {
+		this.letters = removeCharacters(
+			this.letters,
+			message.content.toUpperCase()
+		);
+		if (this.letters.length == 0) {
+			this.lives++;
+			this.letters = alphabet;
+			message.react(`💕`);
+		}
+		return this;
+	}
 }
 module.exports = {
 	data: new SlashCommandBuilder()
@@ -111,17 +130,17 @@ module.exports = {
 		const player_list = await create_signup({
 			interaction,
 			game_name: "Bomb Party",
-			minutes: 2,
+			minutes: 4,
 			min_players: 1,
 			channel: game_channel,
 			rules: rules_embed,
 		});
 		if (player_list !== null) {
+			const game_player_list = player_list.map(
+				(p) => new Player({ player: p, lives, letters: alphabet })
+			);
 			const words_used = [];
 			const eliminated_list = [];
-			const lives_list = createArrayOfNumber(player_list.length, lives);
-			const rounds_list = createArrayOfZeroes(player_list.length);
-			const letters_list = createArrayOfAlphabet(player_list.length);
 			await game_channel.send(
 				`Game starting in **5 seconds**!\n${player_list.join(``)}`
 			);
@@ -144,31 +163,35 @@ module.exports = {
 				}
 				return prompt;
 			};
-			let current_prompt = find_valid_prompt();
+			const prompt_cache = [find_valid_prompt()];
+			const refill_cache = setInterval(() => {
+				while (prompt_cache.length < 10) {
+					prompt_cache.push(find_valid_prompt());
+				}
+			}, 1000);
+			let current_prompt = prompt_cache[0];
 			await game_channel.send(
-				`${player_list[current_turn_index]}\n:bomb: **${current_prompt}**`
+				`${game_player_list[current_turn_index].player}\n:bomb: **${current_prompt}**`
 			);
 			const eliminate = async () => {
-				lives_list[current_turn_index]--;
 				await game_channel.send(
-					`:boom: **The bomb exploded on ${player_list[current_turn_index]}!** (${lives_list[current_turn_index]} lives remaining)`
+					`:boom: **The bomb exploded on ${game_player_list[current_turn_index].player}!** (${game_player_list[current_turn_index].lives} lives remaining)`
 				);
-				if (lives_list[current_turn_index] <= 0) {
-					eliminated_list.unshift({
-						player: player_list.splice(current_turn_index, 1),
-						rounds: rounds_list.splice(current_turn_index, 1),
-						lives: lives_list.splice(current_turn_index, 1),
-						letters: letters_list.splice(current_turn_index, 1),
-					});
+				prompt_cache.shift();
+				game_player_list[current_turn_index].lives--;
+				if (game_player_list[current_turn_index].lives <= 0) {
+					eliminated_list.unshift(
+						game_player_list.slice(current_turn_index, 1)
+					);
 					current_turn_index--;
 				}
-				if (player_list.length == 0) {
+				if (game_player_list.length == 0) {
 					const leaderboard_embed = new EmbedBuilder()
 						.setTitle(`Leaderboard`)
 						.setDescription(
 							`:crown: ${eliminated_list
 								.map((p) => {
-									return `${p.player} (${p.rounds})`;
+									return `${p.player} (${p.words.length})`;
 								})
 								.join(`\n`)}`
 						)
@@ -178,16 +201,17 @@ module.exports = {
 					await game_channel.send(
 						`**${eliminated_list[0].player} has won!**`
 					);
+					clearInterval(refill_cache);
 					message_collector.stop();
 					return;
 				}
 				clearTimeout(bomb_timeout);
 				current_turn_index++;
-				current_turn_index %= player_list.length;
+				current_turn_index %= game_player_list.length;
 
-				current_prompt = find_valid_prompt();
+				current_prompt = prompt_cache[0];
 				await game_channel.send(
-					`${player_list[current_turn_index]}\n:bomb: **${current_prompt}**`
+					`${game_player_list[current_turn_index].player}\n:bomb: **${current_prompt}**`
 				);
 				bomb_timeout = setTimeout(
 					await eliminate,
@@ -199,32 +223,26 @@ module.exports = {
 				min_time + 15000 * Math.random()
 			);
 			message_collector.on("collect", async (m) => {
+				const m_content = m.content.toUpperCase().replace(/[^A-Z]/, ``);
 				if (
-					m.author.id == player_list[current_turn_index].id &&
-					m.content.toUpperCase().includes(current_prompt) &&
-					word_array.includes(m.content.toUpperCase())
+					m.author.id ==
+						game_player_list[current_turn_index].player.id &&
+					m_content.includes(current_prompt) &&
+					word_array.includes(m_content)
 				) {
-					if (words_used.includes(m.content.toUpperCase())) {
+					if (words_used.includes(m_content)) {
 						m.react(`🔒`);
 						return;
 					}
 					clearTimeout(bomb_timeout);
-					rounds_list[current_turn_index]++;
-					letters_list[current_turn_index] = removeCharacters(
-						letters_list[current_turn_index],
-						m.content.toUpperCase()
-					);
-					if (letters_list[current_turn_index].length == 0) {
-						m.react(`❤️‍🔥`);
-						letters_list[current_turn_index] = alphabet;
-						lives_list[current_turn_index]++;
-					}
+					game_player_list[current_turn_index].words.push(m_content);
+					game_player_list[current_turn_index].check_letters(m);
 					current_turn_index++;
-					current_turn_index %= player_list.length;
-
-					current_prompt = find_valid_prompt();
+					current_turn_index %= game_player_list.length;
+					prompt_cache.shift();
+					current_prompt = prompt_cache[0];
 					await game_channel.send(
-						`${player_list[current_turn_index]}\n:bomb: **${current_prompt}**`
+						`${game_player_list[current_turn_index]}\n:bomb: **${current_prompt}**`
 					);
 					bomb_timeout = setTimeout(
 						await eliminate,
