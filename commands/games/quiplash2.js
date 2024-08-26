@@ -7,6 +7,7 @@ const {
 	ActionRowBuilder,
 	ButtonBuilder,
 	ButtonStyle,
+	AttachmentBuilder,
 } = require("discord.js");
 function shuffle(array) {
 	for (let i = array.length - 1; i > 0; i--) {
@@ -15,7 +16,7 @@ function shuffle(array) {
 	}
 	return array;
 }
-const randomColor = require("randomcolor");
+const { createCanvas, registerFont, loadImage } = require("canvas")
 const path = require("path");
 const fs = require(`fs`);
 const { dir } = require("../dir.json");
@@ -26,6 +27,7 @@ const full_prompt_list = fs
 	.split("\n");
 const wait = require("node:timers/promises").setTimeout;
 const signup_path = path.join(dir, `/tools/signup.js`);
+
 const { create_signup } = require(signup_path);
 class Player {
 	constructor(user) {
@@ -76,7 +78,7 @@ module.exports = {
 		const user_list = await create_signup({
 			interaction,
 			game_name: "Quiplash",
-			minutes: 10,
+			minutes: 5,
 			channel: interaction.channel,
 			min_players: 3,
 			rules,
@@ -195,6 +197,40 @@ module.exports = {
 				const get_responses_for_prompt = (prompt) => {
 					return responses.filter((r) => r.prompt == prompt);
 				};
+				/*
+				const drawResponseImage = async (response_a, response_b, show) => {
+					const canvas = createCanvas(1920, 1080)
+					const ctx = canvas.getContext("2d")
+					try {
+						
+						if (show) {
+							const r_a = await fetch(response_a.author.user.avatarURL());
+							if (!r_a.ok) throw new Error('Failed to fetch image');
+							const imageBuffer_a = await r_a.buffer();
+							const image_a = await loadImage(imageBuffer_a);
+							ctx.drawImage(image_a, 0, 0)
+
+							const r_b = await fetch(response_b.author.user.avatarURL());
+							if (!r_b.ok) throw new Error('Failed to fetch image');
+							const imageBuffer_b = await r_b.buffer();
+							const image_b = await loadImage(imageBuffer_b);
+							ctx.drawImage(image_b, 300, 0)
+						}
+						
+						ctx.fillStyle = "#999"
+						ctx.fillText(response_a.content, 0, 200)
+						ctx.fillText(response_b.content, 300, 200)
+						const buffer = canvas.toBuffer("image/png");
+						const attachment = new AttachmentBuilder(buffer, {
+							name: "responses.png",
+						});
+						return attachment;
+					}
+					catch (error) {
+						console.error('Error:', error);
+					}
+				}
+					*/
 				for (const i of round_prompt_list) {
 					const vote_promise = new Promise(async (resolve) => {
 						const current_responses = get_responses_for_prompt(i);
@@ -293,20 +329,20 @@ module.exports = {
 									? a_votes.length / total_votes
 									: 0.5;
 							current_responses[0].author.addPoints(
-								round * 1000 * proportion
+								round * 1000 * proportion * (total_votes == 1 ? 0.5 : 1)
 							);
 							current_responses[1].author.addPoints(
-								round * 1000 * (1 - proportion)
+								round * 1000 * (1 - proportion) * (total_votes == 1 ? 0.5 : 1)
 							);
 							await interaction.channel.send(
 								`${current_responses[0].author.name} - **${
 									a_votes.length
 								}** votes (+${Math.round(
-									round * 1000 * proportion
+									round * 1000 * proportion * (total_votes == 1 ? 0.8 : 1)
 								)})\n${current_responses[1].author.name} - **${
 									b_votes.length
 								}** votes (+${Math.round(
-									round * 1000 * (1 - proportion)
+									round * 1000 * (1 - proportion) * (total_votes == 1 ? 0.8 : 1)
 								)})`
 							);
 							if (

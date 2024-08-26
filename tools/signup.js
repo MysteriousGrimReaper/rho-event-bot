@@ -48,7 +48,7 @@ module.exports = {
 									: index == 50
 									? `+ ${player_list.length - 49} more...` // map the user to "+n more..." if 50 or over
 									: ``
-						  );
+						);
 				};
 				const signup_embed = () => {
 					return new EmbedBuilder()
@@ -228,6 +228,7 @@ module.exports = {
 								break;
 						}
 					});
+					setTimeout(() => {collector.stop()}, minutes * 1000 * 60)
 					collector.on("end", () => {
 						if (player_list.length >= min_players) {
 							signup_message.edit({

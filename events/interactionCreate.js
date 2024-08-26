@@ -6,6 +6,8 @@ const {
 module.exports = {
 	name: Events.InteractionCreate,
 	async execute(interaction) {
+		console.log(`interaction received`)
+		try {
 		const client = interaction.client;
 		if (interaction.isChatInputCommand()) {
 			const command = client.commands.get(interaction.commandName);
@@ -62,6 +64,9 @@ module.exports = {
 			if (hand_collect_reply_fn_amalgam) {
 				await hand_collect_reply_fn_amalgam(interaction);
 			}
+		}}
+		catch (error) {
+			console.log(error)
 		}
 	},
 };
